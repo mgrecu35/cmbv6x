@@ -1,0 +1,52 @@
+#!/PANFS/local/anaconda3/bin/python
+
+def runCmd(str2):
+  import subprocess
+  proc = subprocess.Popen(str2, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+  (stb, errb) = proc.communicate()
+  st = stb.decode("ASCII")
+  st = st.rstrip("\n")
+  return st
+
+def busy():
+  import os
+  import subprocess
+
+  st = runCmd("bpstat -t")
+  print(" ")
+  print(st + " nodes")
+  print(" ")
+  n = int(st)
+  level = 0.07
+  nodecount = 0
+  busycount = 0
+  for i in range(n):
+    si = str(i)
+    st = 'bpstat -s ' + si
+    status = runCmd(st)
+    if status.find('up') >=0:
+      #print("node " + si + " up")
+      nodecount += 1
+      st = 'beostat -C -b --node=' + si
+      status2 = runCmd(st)
+      #print(status2)
+      status2 = status2.split()
+      count = 0
+      for j in range(len(status2)):
+        if float(status2[j]) > level: count += 1
+      if count == 0:
+        print(si   + " -    not  busy")
+        continue
+      busycount += 1
+      if count == 1: print(si + " -  1 cpu  busy")
+      elif count < 10: print(si + " -  " + str(count) + " cpus busy")
+      else: print(si            + " - " + str(count) + " cpus busy")
+  node = "nodes"
+  if busycount == 1: node = "node"
+  print(" ")
+  print(nodecount, "nodes this host  ", busycount, node, "busy  ", int(100.0 * busycount / nodecount + 0.5), "%")
+  print(" ")
+#end busy
+
+busy()
+
