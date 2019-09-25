@@ -43,6 +43,19 @@ subroutine getsnowp2(n0w,iwc,kext,salb,asym,dpia13,dpia35,z13,z35,z94,dm,nfreq)
   dm=d013TableS2(i0,imu)
 end subroutine getsnowp2
 
+subroutine getsnowp_2(n0w,iwc,kext,salb,asym,nfreq)
+  use tables2
+  real :: n0w,iwc
+  real, intent(out) :: kext(nfreq),salb(nfreq), asym(nfreq)
+  integer :: imu
+  imu=3
+  call bisection2(pwc13TableS2(:,imu),nbinS2,log10(iwc)-n0w, i0)
+  kext(1:nfreq)=kextTableS2(i0,1:nfreq,imu)*10.**n0w
+  salb(1:nfreq)=salbTableS2(i0,1:nfreq,imu)
+  asym(1:nfreq)=asymTableS2(i0,1:nfreq,imu)
+end subroutine getsnowp_2
+
+
 subroutine getrainp2(n0w,pwc,kext,salb,asym,dpia13,dpia35,z13,z35,z94,dm,nfreq)
   use tables2
   real :: n0w,pwc
@@ -61,6 +74,19 @@ subroutine getrainp2(n0w,pwc,kext,salb,asym,dpia13,dpia35,z13,z35,z94,dm,nfreq)
   z13=zmin+i0*dzbin+10.*n0w
   dm=d013Table(i0,imu)
 end subroutine getrainp2
+
+
+subroutine getrainp_2(n0w,pwc,kext,salb,asym,nfreq)
+  use tables2
+  real :: n0w,pwc
+  real, intent(out) :: kext(nfreq),salb(nfreq), asym(nfreq)
+  integer :: imu
+  imu=3
+  call bisection2(pwc13Table(:,imu),nbins,log10(pwc)-n0w, i0)
+  kext(1:nfreq)=kextTable(i0,1:nfreq,imu)*10.**n0w
+  salb(1:nfreq)=salbTable(i0,1:nfreq,imu)
+  asym(1:nfreq)=asymTable(i0,1:nfreq,imu)
+end subroutine getrainp_2
 
 
 subroutine getsnowp_z(n0w,z13,kext,salb,asym,srate,nfreq)

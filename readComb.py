@@ -36,4 +36,4 @@ def readcomb2():
     Nw=fh['NS/precipTotPSDparamLow'][a[0],:,:]-log10(8e6)
     psdNodes=fh['NS/PSDparamLowNode'][a[0],:,:]
     wc=fh['NS/precipTotWaterCont'][a[0],:,:]
-    return qv,sfcTemp,press,wc
+    return qv,sfcTemp,press,wc,simTb_CMB,pType,envNode,Nw,psdNodes,binNodes,airTemp,sfcEmiss
