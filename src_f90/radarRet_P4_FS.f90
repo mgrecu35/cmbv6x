@@ -787,47 +787,6 @@ print*, maxval(tbout2D), maxval(tbout2dnoocean)
 !stop
 nf=9
 
-if(iconv==1) then
-   call convallfreq(actOb,tb0(:,:,1:9),tbMean(:,:,1:9),&
-        invCovTb(:,:,1:9,1:9),&
-        tbObs(:,:,1:9),tbout2D(:,:,1:9),dfdtb(:,:,1:9),49,dPRData%n1c21,&
-        dPRData%xlat(:,1:dPRData%n1c21), dPRData%xlon(1:49,1:dPRData%n1c21),&
-        scLonPR(1:49,1:dPRData%n1c21),scLatPR(1:49,1:dPRData%n1c21),&
-        wfmap(1:49,1:dPRData%n1c21),&
-        fpmap(1:49,1:dPRData%n1c21,1:9), &
-        nf,fobj,ifreqG,sfcRain(1:49,1:dPRData%n1c21),ialg)
-   !print*, 'tbout2d_nadir'
-   !print*, tbout2D(24,:,1)
-   !stop
-   call convallfreq(actOb,tbNoOcean(:,:,1:9),tbNoOcean(:,:,1:9),&
-        invCovTb(:,:,1:9,1:9),&
-        tbObs(:,:,1:9),tbout2DNoOcean(:,:,1:9),dfdtb(:,:,1:9),&
-        49,dPRData%n1c21,&
-        dPRData%xlat(:,1:dPRData%n1c21), dPRData%xlon(1:49,1:dPRData%n1c21),&
-        scLonPR(1:49,1:dPRData%n1c21),scLatPR(1:49,1:dPRData%n1c21),&
-        wfmap(1:49,1:dPRData%n1c21),&
-        fpmapN(1:49,1:dPRData%n1c21,1:9), &
-        nf,fobj,ifreqG(1:9),sfcRain(1:49,1:dPRData%n1c21),ialg)
-   
-   call convallfreq(actOb,tb0MS(:,:,1:9),tbMean(:,:,1:9),&
-        invCovTb(:,:,1:9,1:9),&
-        tbObs(:,:,1:9),tbout2DMS(:,:,1:9),dfdtb(:,:,1:9),49,dPRData%n1c21,&
-        dPRData%xlat(:,1:dPRData%n1c21), dPRData%xlon(1:49,1:dPRData%n1c21),&
-        scLonPR(1:49,1:dPRData%n1c21),scLatPR(1:49,1:dPRData%n1c21),&
-        wfmap(1:49,1:dPRData%n1c21),&
-        fpmap(1:49,1:dPRData%n1c21,1:9), &
-        nf,fobj,ifreqG,sfcRain(1:49,1:dPRData%n1c21),ialg)
-   
-   call convallfreq(actOb,tbNoOceanMS(:,:,1:9),tbNoOceanMS(:,:,1:9),&
-        invCovTb(:,:,1:9,1:9),&
-        tbObs(:,:,1:9),tbout2DNoOceanMS(:,:,1:9),dfdtb(:,:,1:9),&
-        49,dPRData%n1c21,&
-        dPRData%xlat(:,1:dPRData%n1c21), dPRData%xlon(1:49,1:dPRData%n1c21),&
-        scLonPR(1:49,1:dPRData%n1c21),scLatPR(1:49,1:dPRData%n1c21),&
-        wfmap(1:49,1:dPRData%n1c21),&
-        fpmapN(1:49,1:dPRData%n1c21,1:9), &
-        nf,fobj,ifreqG(1:9),sfcRain(1:49,1:dPRData%n1c21),ialg)
-endif
 
 print*, 'ialg=',ialg
 !  SFM  begin  12/13/2013; conditional to rewind dpr
@@ -916,6 +875,49 @@ do i=2,48
       end if
    end do
 end do
+
+if(iconv==1) then
+   call convallfreq(actOb,tb0(:,:,1:9),tbMean(:,:,1:9),&
+        invCovTb(:,:,1:9,1:9),&
+        tbObs(:,:,1:9),tbout2D(:,:,1:9),dfdtb(:,:,1:9),49,dPRData%n1c21,&
+        dPRData%xlat(:,1:dPRData%n1c21), dPRData%xlon(1:49,1:dPRData%n1c21),&
+        scLonPR(1:49,1:dPRData%n1c21),scLatPR(1:49,1:dPRData%n1c21),&
+        wfmap(1:49,1:dPRData%n1c21),&
+        fpmap(1:49,1:dPRData%n1c21,1:9), &
+        nf,fobj,ifreqG,sfcRain(1:49,1:dPRData%n1c21),ialg)
+   !print*, 'tbout2d_nadir'
+   !print*, tbout2D(24,:,1)
+   !stop
+   call convallfreq(actOb,tbNoOcean(:,:,1:9),tbNoOcean(:,:,1:9),&
+        invCovTb(:,:,1:9,1:9),&
+        tbObs(:,:,1:9),tbout2DNoOcean(:,:,1:9),dfdtb(:,:,1:9),&
+        49,dPRData%n1c21,&
+        dPRData%xlat(:,1:dPRData%n1c21), dPRData%xlon(1:49,1:dPRData%n1c21),&
+        scLonPR(1:49,1:dPRData%n1c21),scLatPR(1:49,1:dPRData%n1c21),&
+        wfmap(1:49,1:dPRData%n1c21),&
+        fpmapN(1:49,1:dPRData%n1c21,1:9), &
+        nf,fobj,ifreqG(1:9),sfcRain(1:49,1:dPRData%n1c21),ialg)
+   
+   call convallfreq(actOb,tb0MS(:,:,1:9),tbMean(:,:,1:9),&
+        invCovTb(:,:,1:9,1:9),&
+        tbObs(:,:,1:9),tbout2DMS(:,:,1:9),dfdtb(:,:,1:9),49,dPRData%n1c21,&
+        dPRData%xlat(:,1:dPRData%n1c21), dPRData%xlon(1:49,1:dPRData%n1c21),&
+        scLonPR(1:49,1:dPRData%n1c21),scLatPR(1:49,1:dPRData%n1c21),&
+        wfmap(1:49,1:dPRData%n1c21),&
+        fpmap(1:49,1:dPRData%n1c21,1:9), &
+        nf,fobj,ifreqG,sfcRain(1:49,1:dPRData%n1c21),ialg)
+   
+   call convallfreq(actOb,tbNoOceanMS(:,:,1:9),tbNoOceanMS(:,:,1:9),&
+        invCovTb(:,:,1:9,1:9),&
+        tbObs(:,:,1:9),tbout2DNoOceanMS(:,:,1:9),dfdtb(:,:,1:9),&
+        49,dPRData%n1c21,&
+        dPRData%xlat(:,1:dPRData%n1c21), dPRData%xlon(1:49,1:dPRData%n1c21),&
+        scLonPR(1:49,1:dPRData%n1c21),scLatPR(1:49,1:dPRData%n1c21),&
+        wfmap(1:49,1:dPRData%n1c21),&
+        fpmapN(1:49,1:dPRData%n1c21,1:9), &
+        nf,fobj,ifreqG(1:9),sfcRain(1:49,1:dPRData%n1c21),ialg)
+endif
+
 print*, 'oe_tbs'
 !print*, oe_tbs(:,24,7,1:2)
 !stop

@@ -19,7 +19,7 @@ subroutine get_oetbs(tbs,scattPropOut)
 end subroutine get_oetbs
 subroutine getscattH(binNodes,pRate,z13,emiss,envNode,pType,&
      qv3D,press3D,airTemp3D,nw3d,nscans,npixs,nlev,nchans,idir,&
-     i,j,nfreq,df,kextH,salbH,asymH,dsrate,clutFree)
+     i,j,nfreq,df,kextH,salbH,asymH,dsrate,clutFree,swc3d)
   implicit none
   integer :: nscans,npixs,nlev, nchans
   integer :: nfreq, idir
@@ -27,7 +27,7 @@ subroutine getscattH(binNodes,pRate,z13,emiss,envNode,pType,&
   real :: z13(nscans,npixs,nlev),emiss(nscans,npixs,nchans)
   integer :: clutFree(nscans,npixs)
   real :: nw3d(nscans,npixs,nlev), press3d(nscans,npixs,nlev), &
-       airTemp3d(nscans,npixs,nlev),qv3d(nscans,npixs,nlev)
+       airTemp3d(nscans,npixs,nlev),qv3d(nscans,npixs,nlev),swc3d(nscans,npixs,nlev)
   integer :: binNodes(nscans,npixs,5)
   integer :: envNode(nscans,npixs,10)
   integer :: pType(nscans,npixs)
@@ -148,16 +148,25 @@ subroutine getscattH(binNodes,pRate,z13,emiss,envNode,pType,&
         salb=0
         asym=0
      endif
+    
      kextH(k+1,:)=kext+kext2
      salbH(k+1,:)=(salb*kext+salb2*kext2)/(kext+kext2+1e-10)
      asymH(k+1,:)=(asym*salb*kext+asym2*salb2*kext2)*&
           (salb*kext+salb2*kext2)/((salb*kext+salb2*kext2)**2+1e-10)
      if(maxval(kextH(k+1,:))>197089.1-1) then
-          print*, kext
-          print*, kext2
-          print*, nw3d(i1,j,k+1),pRate(i1,j,k+1)
-          stop
-       end if
+        print*, kext
+        print*, kext2
+        print*, nw3d(i1,j,k+1),pRate(i1,j,k+1)
+        stop
+     end if
+101 format(4(I4)," ",4(F9.5))
+     if(j.eq.24) then
+        !print*, idir
+        !print*,i,i1,j,k, swc3d(i1,j,k+1)+swc2
+        if(idir==1) then
+           !write(*,101) i, i1,j,k+1, kextH(k+1,7),salbH(k+1,7),asymH(k+1,7),swc3d(i1,j,k+1)+swc2
+        endif
+     endif
      if (isnan(salbH(k+1,1))) then
         print*, 'rain'
         print*, k+1
@@ -258,7 +267,7 @@ subroutine updatepfields(binNodes,pRate,swc3d,z13,emiss,envNode,pType,&
 end subroutine updatepfields
 subroutine slant1d(binNodes,pRate,z13,emiss,envNode,pType,&
      qv3D,press3D,airTemp3D,nw3d,tbsim,nscans,npixs,nlev,nchans,idir,&
-     sfcBin,sfcTemp,cldw,df,i,j,nfreq, tbout_all, f2, dsrate, clutFree)
+     sfcBin,sfcTemp,cldw,df,i,j,nfreq, tbout_all, f2, dsrate, clutFree, swc3d)
   use oetbs
   implicit none
   integer :: nscans,npixs,nlev, nchans
@@ -267,7 +276,7 @@ subroutine slant1d(binNodes,pRate,z13,emiss,envNode,pType,&
   integer :: clutFree(nscans,npixs)
   real :: z13(nscans,npixs,nlev),emiss(nscans,npixs,nchans)
   real :: nw3d(nscans,npixs,nlev), press3d(nscans,npixs,nlev), &
-       airTemp3d(nscans,npixs,nlev),qv3d(nscans,npixs,nlev)
+       airTemp3d(nscans,npixs,nlev),qv3d(nscans,npixs,nlev),swc3d(nscans,npixs,nlev)
   integer :: binNodes(nscans,npixs,5)
   integer :: envNode(nscans,npixs,10)
   real, intent(out) :: tbsim(nscans,npixs,nchans)
@@ -296,10 +305,10 @@ subroutine slant1d(binNodes,pRate,z13,emiss,envNode,pType,&
   !ifreqG=(/1,1,2,2,3,4,4,5,5,6,6,7,8/)
   call getscattH(binNodes,pRate,z13,emiss,envNode,pType,&
        qv3D,press3D,airTemp3D,nw3d,nscans,npixs,nlev,nchans,idir,&
-       i,j,nfreq,df,kextH_u,salbH_u,asymH_u, dsrate, clutFree)
+       i,j,nfreq,df,kextH_u,salbH_u,asymH_u, dsrate, clutFree, swc3d)
   call getscattH(binNodes,pRate,z13,emiss,envNode,pType,&
        qv3D,press3D,airTemp3D,nw3d,nscans,npixs,nlev,nchans,-idir,&
-       i,j,nfreq,df,kextH_d,salbH_d,asymH_d, dsrate, clutFree)
+       i,j,nfreq,df,kextH_d,salbH_d,asymH_d, dsrate, clutFree, swc3d)
 
   !print*, binNodes(i,j,:)
   !print*, z13(i,j,:)
@@ -462,13 +471,13 @@ subroutine  frteprep(binNodes,pRate,swc3d,pRateOut,swcOut,nwOut,z13,emiss,envNod
            !print*, nchans
            call slant1d(binNodes,pRate,z13,emiss,envNode,pType,&
                 qv3D,press3D,airTemp3D,nw3d,tbsim,nscans,npixs,nlev,nchans,idir,&
-                sfcBin,sfcTemp,cldw,df,i,j,nfreq, tbout1, f2, dsrate, clutFree)
+                sfcBin,sfcTemp,cldw,df,i,j,nfreq, tbout1, f2, dsrate, clutFree, swc3d)
            df=1.
            dsrate=0.1
            oe_tbs(i,j,:,3)=tbout1(:)
            call slant1d(binNodes,pRate,z13,emiss,envNode,pType,&
                 qv3D,press3D,airTemp3D,nw3d,tbsim,nscans,npixs,nlev,nchans,idir,&
-                sfcBin,sfcTemp,cldw,df,i,j,nfreq, tbout2, f2, dsrate, clutFree)
+                sfcBin,sfcTemp,cldw,df,i,j,nfreq, tbout2, f2, dsrate, clutFree, swc3d)
            
            do k=1,6
               dtb(k)=(tbout2(7+k)-tbout1(7+k))/dsrate
@@ -491,7 +500,7 @@ subroutine  frteprep(binNodes,pRate,swc3d,pRateOut,swcOut,nwOut,z13,emiss,envNod
            if(dsrate<0.0001) dsrate=0.0001
            call slant1d(binNodes,pRate,z13,emiss,envNode,pType,&
                 qv3D,press3D,airTemp3D,nw3d,tbsim,nscans,npixs,nlev,nchans,idir,&
-                sfcBin,sfcTemp,cldw,df*0.,i,j,nfreq, tbout2, f2, dsrate, clutFree)
+                sfcBin,sfcTemp,cldw,df*0.,i,j,nfreq, tbout2, f2, dsrate, clutFree, swc3d)
            do k=1,6
               dtb(k)=(tbout2(7+k)-tbout1(7+k))/0.1
               e(k)=tbobs(i,j,7+k)-tbout1(7+k)
@@ -516,10 +525,16 @@ subroutine  frteprep(binNodes,pRate,swc3d,pRateOut,swcOut,nwOut,z13,emiss,envNod
            dsrate=dsrate*0.5
            call slant1d(binNodes,pRate,z13,emiss,envNode,pType,&
                 qv3D,press3D,airTemp3D,nw3d,tbsim,nscans,npixs,nlev,nchans,idir,&
-                sfcBin,sfcTemp,cldw,df,i,j,nfreq, tbout2, f2, dsrate, clutFree)
+                sfcBin,sfcTemp,cldw,df,i,j,nfreq, tbout2, f2, dsrate, clutFree, swc3d)
            oe_tbs(i,j,:,1)=tbobs(i,j,:)
            oe_tbs(i,j,:,2)=tbout2(:)
-
+202        format(I7,13(F7.2,1x))
+           if(j.eq.24) then
+              if(pType(i,j)>0) then
+                 write(*,202) i,tbout2
+              end if
+              !stop
+           end if
            !write(11,101) i,j,(tbout2(7+k),k=1,6),(tbobs(i,j,7+k),k=1,6)
            !dtb=array([array(tbSim)[-6:]-array(tbSim_noad)[-6:]])
            
