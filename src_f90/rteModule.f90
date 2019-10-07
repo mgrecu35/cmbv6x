@@ -86,7 +86,7 @@ subroutine getscattH(binNodes,pRate,z13,emiss,envNode,pType,&
            print*, kext
            print*, salb
            print*, asym
-           stop
+           !stop
            if(n0w1>1) then 
               n0w1=1
            else
@@ -114,7 +114,7 @@ subroutine getscattH(binNodes,pRate,z13,emiss,envNode,pType,&
         print*, salb2
         print*, n0w1
         print*, k+1
-        STOP
+        !STOP
      endif
   enddo
   do k=binNodes(i,j,3), binNodes(i,j,5)
@@ -157,7 +157,7 @@ subroutine getscattH(binNodes,pRate,z13,emiss,envNode,pType,&
         print*, kext
         print*, kext2
         print*, nw3d(i1,j,k+1),pRate(i1,j,k+1)
-        stop
+        !stop
      end if
 101 format(4(I4)," ",4(F9.5))
      if(j.eq.24) then
@@ -228,12 +228,14 @@ subroutine updatepfields(binNodes,pRate,swc3d,z13,emiss,envNode,pType,&
         if(f<0) f=0
         !f=0.0
         n0w1=nw3d(i1,j,k+1)
+        if(n0w1>3.5) n0w1=3.5
+        if(n0w1<-3.5) n0w1=-3.5
         call getsnowp_z2(n0w1,z13(i1,j,k+1),kext,salb,asym,srate,swc,nfreq)
         call getsnowp(n0w1,dsrate,swc2,kext2,salb2,asym2,nfreq)
         if(swc2>1e2) then
            print*, 'above'
            print*, dsrate, swc2, n0w1, z13(i1,j,k+1)
-           stop
+           !stop
         endif
         swc3d(i1,j,k+1)=swc+swc2
         pRate(i1,j,k+1)=srate+dsrate
@@ -253,7 +255,7 @@ subroutine updatepfields(binNodes,pRate,swc3d,z13,emiss,envNode,pType,&
            if(swc2>1e2) then
               print*, 'below'
               print*, dsrate, swc2, n0w1, z13(i1,j,k+1)
-              stop
+              !stop
 
            endif
         else
@@ -344,7 +346,7 @@ subroutine slant1d(binNodes,pRate,z13,emiss,envNode,pType,&
        kexttot_u(k)=absair+abswv+z_clw+kextH_u(k,iFreq(ifreqit)+1)
        if(kexttot_u(k)>197089.1-1) then
           print*, kextH_u(k,iFreq(ifreqit)+1), iFreq(ifreqit)+1, ifreqit
-          stop
+          !stop
        end if
        salbtot_u(k)=salbH_u(k,iFreq(ifreqit)+1)*&
             kextH_u(k,iFreq(ifreqit)+1)/kexttot_u(k)
@@ -401,7 +403,7 @@ subroutine slant1d(binNodes,pRate,z13,emiss,envNode,pType,&
        print*, sfcTemp(i,j)
        print*, lyr_hgt(1:nlyr+1)
        print*, lyr_temp(1:nlyr+1)
-       stop '"tbout" is a NaN'
+       !stop '"tbout" is a NaN'
 
     endif
     !print*, tbout
