@@ -333,10 +333,6 @@ int readenvx_(char *jobname, int *ialg, char *f2akuENV, int *n1c21, int *ic,
   envTemp[i3d] = L2AKuENVDatax.VERENV.airTemperature[j][2*k];*/
 //assume that variable contains flag value as final option
 	 envSfcTemp[i2d]=L2AKuENVDatax.VERENV.surfaceTemperature[j];
-	 if(k*0.25<10)
-	   envTemp[i3d]= envSfcTemp[i2d]-6*k*0.25;
-	 else
-	   envTemp[i3d]= envSfcTemp[i2d]-6*10;
          if(L2AKuENVDatax.VERENV.airPressure[j][2*k] > 0. && L2AKuENVDatax.VERENV.airPressure[j][2*k+1] > 0.)
            envPress[i3d] = L2AKuENVDatax.VERENV.airPressure[j][2*k] * 
             pow((L2AKuENVDatax.VERENV.airPressure[j][2*k+1]/L2AKuENVDatax.VERENV.airPressure[j][2*k]), 0.5);
