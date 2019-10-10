@@ -34,7 +34,8 @@ module local_RD_var
   real :: w10(49,300), w10_out_NS(49,300), w10_out_MS(49,300), w10_min, w10_max, emis, relAz
   real :: w10_rms_NS(49,300), emis_rms_NS(49,300,13), w10_rms_MS(49,300), emis_rms_MS(49,300,13)
   real :: S1eiaPR(49,300), S2eiaPR(49,300)
- real :: sigmaZeroVarKu(49,300), sigmaZeroVarKa(49,300), sigmaZeroCov(49,300)
+  real :: sigmaZeroVarKu(49,300), sigmaZeroVarKa(49,300), sigmaZeroCov(49,300)
+  integer :: iiad
 end module local_RD_var
 
 subroutine get_rain_type(raintype, nscans)

@@ -3,6 +3,8 @@
 #include <string.h>
 
 
+#define iiad local_rd_var_mp_iiad_
+
 int inputParser(char *p2arg, char f1CGMI[3][1000], char f2AKu[1000],
 		char f2ADPR[1000], char f2KuENV[1000], char fSNOW[1000], 
 		char fSEAICE[1000], char fCMB[1000], int *rseed1, int *rseed2,
@@ -12,12 +14,13 @@ int inputParser(char *p2arg, char f1CGMI[3][1000], char f2AKu[1000],
   char str[1000], key[20] = "", vstr[1000], *rs;
   int i, cc = 0, cr = 0, ck = 0, cd = 0, ce = 0, csnow = 0, csice = 0, 
       cm = 0, rv;
-
+  extern int iiad;
   *rseed1 = -1;
   *rseed2 = -1;
   strcpy(fSNOW, "");
   strcpy(fSEAICE, "");
   fn = fopen(p2arg, "r");
+  iiad=0;
   if(fn == NULL) {fprintf(stderr, "\nERROR opening parameter file.\n"); exit(1);}
   while(1)
   {
@@ -65,6 +68,8 @@ int inputParser(char *p2arg, char f1CGMI[3][1000], char f2AKu[1000],
       { *ialg=atoi(vstr);}
     else if(strcmp(key,"ifs")==0)
       { *ifs=atoi(vstr);}
+    else if(strcmp(key,"iiad")==0)
+      { iiad=atoi(vstr);}
     else
     {
       fprintf(stderr, "\nError in parameter file - invalid keyword %s.\n", key);

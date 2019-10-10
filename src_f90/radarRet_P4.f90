@@ -846,32 +846,52 @@ nfreq=8
 !idir=1
 print*, 'idir_inside=', idir
 !idir=-idir
-call frteprep(binNodes,pRate,swc3d,pRateOut,swcOut,nwOut,z13,emiss2d,&
-     envNode,pType,&
-     qv3D,press3D,airTemp3D,nw3d,tbsim,nscans,npixs,nlev,nchans,idir,&
-     sfcBin,sfcTemp,cldw3d,tbobsT,nfreq,clutFree,dPRData%n1c21)
-
-!pRateOut=pRate
-!swcOut=swc3d
-do i=2,48
-   do j=1,dPRData%n1c21
-      do k=1,13
-         oe_tbs(j,i,k,4)=sum(dPRRet%MS%tb(i,j,ipolG(k),ifreqG(k),1:1*nmemb1))/(nmemb1)
+if(iiad==1) then
+   call frteprep(binNodes,pRate,swc3d,pRateOut,swcOut,nwOut,z13,emiss2d,&
+        envNode,pType,&
+        qv3D,press3D,airTemp3D,nw3d,tbsim,nscans,npixs,nlev,nchans,idir,&
+        sfcBin,sfcTemp,cldw3d,tbobsT,nfreq,clutFree,dPRData%n1c21)
+   
+   do i=2,48
+      do j=1,dPRData%n1c21
+         do k=1,13
+            oe_tbs(j,i,k,4)=sum(dPRRet%MS%tb(i,j,ipolG(k),ifreqG(k),1:1*nmemb1))/(nmemb1)
+         end do
+         if(oe_tbs(j,i,1,2)>50) then
+            do k=1,13
+               dPRRet%MS%tb(i,j,ipolG(k),ifreqG(k),1:1*nmemb1)=oe_tbs(j,i,k,2)
+            end do
+            do k=1,13
+               dPRRet%MS%tb(i,j,ipolG(k),ifreqG(k),1:1*nmemb1)=oe_tbs(j,i,k,2)
+               tb0MS(i,j,k)=sum(dPRRet%MS%tb(i,j,ipolG(k),&
+                    ifreqG(k),1:nmemb1))/nmemb1
+               tbNoOceanMS(i,j,k)=sum(dPRRet%MS%tb(i,j,ipolG(k),&
+                    ifreqG(k),1:nmemb1))/nmemb1
+            end do
+         end if
       end do
-      if(oe_tbs(j,i,1,2)>50) then
-         do k=1,13
-            dPRRet%MS%tb(i,j,ipolG(k),ifreqG(k),1:1*nmemb1)=oe_tbs(j,i,k,2)
-         end do
-         do k=1,13
-            dPRRet%MS%tb(i,j,ipolG(k),ifreqG(k),1:1*nmemb1)=oe_tbs(j,i,k,2)
-            tb0MS(i,j,k)=sum(dPRRet%MS%tb(i,j,ipolG(k),&
-                 ifreqG(k),1:nmemb1))/nmemb1
-            tbNoOceanMS(i,j,k)=sum(dPRRet%MS%tb(i,j,ipolG(k),&
-                 ifreqG(k),1:nmemb1))/nmemb1
-         end do
-      end if
    end do
-end do
+   do i=2,48
+      do j=1,dPRData%n1c21
+         do k=1,min(binNodes(j,i,5),binNodes(j,i,4))+1
+            rrate3DMS(k,i,j)=pRateOut(j,i,k)
+            pwc3DMS(k,i,j)=swcOut(j,i,k)
+         enddo
+         do k=min(binNodes(j,i,5),binNodes(j,i,2))+1,&
+              min(binNodes(j,i,5),binNodes(j,i,3))+1
+            !xf=1-(k-binNodes(j,i,2)-1.)/(binNodes(j,i,3)-binNodes(j,i,2)+1e-5)
+            !rrate3DMS(k,i,j)=xf*pRateOut(j,i,k)+(1-xf)*pRate(j,i,k)
+            !pwc3DMS(k,i,j)=xf*swcOut(j,i,k)+(1-xf)*swc3D(j,i,k)
+         enddo
+         do k=1,88
+            if(dPRData%rainType(i,j)>=100) then
+               dPRRet%MS%log10dNw(1:nmemb1,k,i,j)=&
+                    dPRRet%MS%log10dNw(1:nmemb1,k,i,j)-nw3d(j,i,k)+nwOut(j,i,k)
+            endif
+         enddo
+      enddo
+   enddo
+end if
 
 
 if(iconv==1) then
@@ -916,26 +936,7 @@ if(iconv==1) then
         nf,fobj,ifreqG(1:9),sfcRain(1:49,1:dPRData%n1c21),ialg)
 endif
 
-do i=2,48
-   do j=1,dPRData%n1c21
-      do k=1,min(binNodes(j,i,5),binNodes(j,i,4))+1
-         rrate3DMS(k,i,j)=pRateOut(j,i,k)
-         pwc3DMS(k,i,j)=swcOut(j,i,k)
-      enddo
-      do k=min(binNodes(j,i,5),binNodes(j,i,2))+1,&
-           min(binNodes(j,i,5),binNodes(j,i,3))+1
-         !xf=1-(k-binNodes(j,i,2)-1.)/(binNodes(j,i,3)-binNodes(j,i,2)+1e-5)
-         !rrate3DMS(k,i,j)=xf*pRateOut(j,i,k)+(1-xf)*pRate(j,i,k)
-         !pwc3DMS(k,i,j)=xf*swcOut(j,i,k)+(1-xf)*swc3D(j,i,k)
-      enddo
-      do k=1,88
-         if(dPRData%rainType(i,j)>=100) then
-            dPRRet%MS%log10dNw(1:nmemb1,k,i,j)=&
-                 dPRRet%MS%log10dNw(1:nmemb1,k,i,j)-nw3d(j,i,k)+nwOut(j,i,k)
-         endif
-      enddo
-   enddo
-enddo
+
 !stop
 do j=1,dPRData%n1c21
    if(ialg==1) then
