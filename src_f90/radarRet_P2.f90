@@ -34,7 +34,7 @@ module local_RD_var
   real :: w10(49,300), w10_out_NS(49,300), w10_out_MS(49,300), w10_min, w10_max, emis, relAz
   real :: w10_rms_NS(49,300), emis_rms_NS(49,300,13), w10_rms_MS(49,300), emis_rms_MS(49,300,13)
   real :: S1eiaPR(49,300), S2eiaPR(49,300)
-
+ real :: sigmaZeroVarKu(49,300), sigmaZeroVarKa(49,300), sigmaZeroCov(49,300)
 end module local_RD_var
 
 subroutine get_rain_type(raintype, nscans)
@@ -166,7 +166,7 @@ subroutine radarRetSub2(nmu2,  nmfreq2,   icL, tbRgrid,               &
   integer  :: orbNumb
   !begin SJM 7/25/14
   real :: s0Ku, s0Ka, s0stdKu, s0stdKa, s0corr, ds0Ku, ds0Ka
-  real :: sigmaZeroVarKu(49,300), sigmaZeroVarKa(49,300), sigmaZeroCov(49,300)
+ 
   !end SJM 7/25/2014
 !begin WSO 8/8/13
   real :: gatelength
@@ -1208,7 +1208,8 @@ subroutine radarRetSub2(nmu2,  nmfreq2,   icL, tbRgrid,               &
         !if(maxval(dPRRet%emis(i,j,:,:,:)) .gt. 2.) print*, dPRRet%emis(i,j,:,:,:)
      enddo
   enddo
-  
+  print*, maxval(dPRRet%log10dNw)
+  print*, minval(dPRRet%log10dNw)
   !print*,tbRgrid(7,:,1:300)
   !stop
 end subroutine radarRetSub2
@@ -1329,7 +1330,7 @@ subroutine radarRetSub3(nmu2,  nmfreq2,   icL, tbRgrid,               &
   integer  :: orbNumb
   !begin SJM 7/25/14
   real :: s0Ku, s0Ka, s0stdKu, s0stdKa, s0corr, ds0Ku, ds0Ka
-  real :: sigmaZeroVarKu(49,300), sigmaZeroVarKa(49,300), sigmaZeroCov(49,300)
+  !real :: sigmaZeroVarKu(49,300), sigmaZeroVarKa(49,300), sigmaZeroCov(49,300)
   !end SJM 7/25/2014
 !begin WSO 8/8/13
   real :: gatelength
@@ -1434,7 +1435,9 @@ subroutine radarRetSub3(nmu2,  nmfreq2,   icL, tbRgrid,               &
   print*,''
   print*,''
   call asciiplot(sfcRain(:,151:300),49,150,2,1,1e-1,100.)
- 
+  print*, maxval(dPRRet%log10dNw)
+  print*, minval(dPRRet%log10dNw)
+  !stop
 end subroutine radarRetSub3
 
 

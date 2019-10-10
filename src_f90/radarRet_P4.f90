@@ -115,7 +115,7 @@ subroutine radarRetSub4(nmu2,  nmfreq2,   icL, tbRgrid,               &
   integer  :: orbNumb
   !begin SJM 7/25/14
   real :: s0Ku, s0Ka, s0stdKu, s0stdKa, s0corr, ds0Ku, ds0Ka
-  real :: sigmaZeroVarKu(49,300), sigmaZeroVarKa(49,300), sigmaZeroCov(49,300)
+  !real :: sigmaZeroVarKu(49,300), sigmaZeroVarKa(49,300), sigmaZeroCov(49,300)
   !end SJM 7/25/2014
 !begin WSO 8/8/13
   real :: gatelength

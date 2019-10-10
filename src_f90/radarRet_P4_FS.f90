@@ -115,7 +115,7 @@ subroutine radarRetSub4_FS(nmu2,  nmfreq2,   icL, tbRgrid,               &
   integer  :: orbNumb
   !begin SJM 7/25/14
   real :: s0Ku, s0Ka, s0stdKu, s0stdKa, s0corr, ds0Ku, ds0Ka
-  real :: sigmaZeroVarKu(49,300), sigmaZeroVarKa(49,300), sigmaZeroCov(49,300)
+  !real :: sigmaZeroVarKu(49,300), sigmaZeroVarKa(49,300), sigmaZeroCov(49,300)
   !end SJM 7/25/2014
 !begin WSO 8/8/13
   real :: gatelength
@@ -497,7 +497,9 @@ do j=1,dPRData%n1c21
       end if
    enddo
 enddo
-
+print*, 'maxval=',maxval(dPRRet%log10dNw)
+print*, minval(dPRRet%log10dNw)
+!stop
 !call closeenkffile2()
 ! close(31)
 ! close(32)
@@ -848,7 +850,17 @@ do i=1,49
    enddo
 enddo
 nfreq=8
-
+i=24
+j=1
+do k = 1, 10
+   env_nodes(k, i) = 88 - nint((env_levs(k)/cos(dPRData%localZenithAngle(i, j) * pi / 180.)) * 4.)
+   !       write(*, '("i: ", i5, "  k: ", i5, "  zenangl: ", f8.4, "  env_node: ", &
+   !        i5)') i, k, dPRData%localZenithAngle(i, j), env_nodes(k, i)
+enddo
+do k=1,10
+   print*, maxval(dPRData%envTemp(env_nodes(k,24),:,:)), minval(dPRData%envTemp(env_nodes(k,24),:,:)), env_nodes(k,24)
+enddo
+!stop
 !idir=1
 print*, 'idir_inside=', idir
 !idir=-idir
