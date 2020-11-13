@@ -81,7 +81,7 @@ OBJEXE	=    $(OBJ)  src_f90/mainfpy.f90
 #---Link and create Executable
 combAlg:	$(OBJEXE) 
 		f2py -c -m combAlg \
-		src_f90/mainfpy.f90 \
+		src_f90/mainfpy.f90 hbprof2.f90\
 		$(OBJ)  $(LIB) $(LIBES) 
 
 #---Auxiliary Functions
