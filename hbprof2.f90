@@ -122,7 +122,9 @@ subroutine iter_profcv(btop,bzd,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
            rrate1d(k+1)=pr13Table(n1,imu)*10**dn
            dn1d(k+1)=dn
            dm1d(k+1)=dm
-           piaKa=piaKa+attKa*2*dr
+           piaKa=piaKa+attKa*dr
+           zKaSim(k+1)=z35Table(n1,imu)+10*dn-piaKa
+           piaKa=piaKa+attKa*dr
         end if
         zeta1d(k+1)=zetaS
      end do
@@ -207,7 +209,7 @@ subroutine iter_profst(btop,bzd,bb,bbt,bbb,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
         end do
      end if
   end do
-  print*, bbt, bb
+  !print*, bbt, bb
   do k=bbt,bb
      if(zKuC(k+1)>10) then
         f=(k-bbt+0.0)/(bb-bbt)
@@ -224,7 +226,7 @@ subroutine iter_profst(btop,bzd,bb,bbt,bbb,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
         if(n1BB.gt.nbins) n1BB=nbins
         if(n1S.lt.1) n1S=1
         if(n1BB.lt.1) n1BB=1
-        print*, n1S,n1BB,f, Z1,Z2,zKuC(k+1)
+        !print*, n1S,n1BB,f, Z1,Z2,zKuC(k+1)
         attKuS=att13TableS2(n1S,imu)*10**dns(bbt)
         attKaS=att35TableS2(n1S,imu)*10**dns(bbt)
         attKuBB=att13TableBB(n1S,imu)*10**dns(bbt)
@@ -241,19 +243,19 @@ subroutine iter_profst(btop,bzd,bb,bbt,bbb,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
         rrate1d(k+1)=pr13TableS2(n1S,imu)*10**dns(bbt)+pr13TableBB(n1BB,imu)*10**dns(bbt)
      end if
   end do
-
+  epst=eps
   do k=bb+1,bbb-1
-     if(zKuC(k)>100) then
+     if(zKuC(k)>0) then
         f=(k-bb+0.0)/(bbb-bb)
         f=0.99
         Z1=(1-f)*zKuC(k+1)
-        Z2=(f)*zKuC(k)
+        Z2=(f)*zKuC(k+1)
         ztrue=Z2
         n1=(Z1-zmin-10*dns(bbt))/dzbin+1
-        dn=1.5*dnCoeff(1)*Z2+dnCoeff(2)+0.2*log(epst)
+        dn=1.5*(dnCoeff(1)*Z2+dnCoeff(2))+0.2*log(epst)
         if(10*dn+ztrue.gt.zKuSJ(nbins)) dn=(zKuSJ(nbins)-ztrue)/10.0
         if(10*dn+ztrue.lt.zKuSJ(1)) dn=(zKuSJ(1)-ztrue)/10.0
-        n1b=(Z2-zmin-10*dn)/dzbin+1
+        n1b=((Z2-zmin-10*dn)/dzbin)+1
         if(n1.gt.nbins) n1=nbins
         if(n1b.gt.nbins) n1b=nbins
         if(n1.lt.1) n1=1
@@ -265,13 +267,14 @@ subroutine iter_profst(btop,bzd,bb,bbt,bbb,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
         piaKu=piaKu+(attKu+attKuBB)*dr
         piaKa=piaKa+(attKa+attKaBB)*dr
         zKuC(k+1)=zKuL(k+1)+piaKu
-        !zKaSim(k+1)=10*log10(10**(0.1*z35TableS2(n1,imu)+dns(bbt))+&
-        !     10**(0.1*z35TableBB(n1H,imu)+dns(bbt)))-piaKa
+        zKaSim(k+1)=10*log10(10**(0.1*z35TableBB(n1,imu)+dns(bbt))+&
+             10**(0.1*z35Table(n1b,imu)+dn))-piaKa
         piaKu=piaKu+(attKu+attKuBB)*dr
         piaKa=piaKa+(attKa+attKaBB)*dr
         dm1d(k+1)=(1-f)*d013TableBB(n1,imu)+f*d013Table(n1b,imu)
         dn1d(k+1)=(1-f)*dns(bbt)+f*dn
         rrate1d(k+1)=pr13TableBB(n1,imu)*10**dns(bbt)+pr13Table(n1b,imu)*10**dn
+        !print*, zKuC(k+1),Z1,Z2,dn,n1b,n1
      end if
   end do
   
@@ -284,14 +287,14 @@ subroutine iter_profst(btop,bzd,bb,bbt,bbb,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
   piamax=52-zKuL(bcf+1)
   q=0.2*log(10.0)
   zKuC(bzd+1:bcf+1)=zKuL(bzd+1:bcf+1)+piaKuS
-  epst=eps
+ 
   attKu=0.0
   attKa=0.0
   f=1.0
   do it=1,2
      zetaS=0.0
      piaKa=piaKaS+0.0
-     do k=bb+1,bcf
+     do k=bbb,bcf
         if(zKuC(k+1)>0) then
            ztrue=zKuC(k+1)
            ftran=1
@@ -309,7 +312,9 @@ subroutine iter_profst(btop,bzd,bb,bbt,bbb,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
            rrate1d(k+1)=pr13Table(n1,imu)*10**dn
            dn1d(k+1)=dn
            dm1d(k+1)=dm
-           piaKa=piaKa+attKa*2*dr
+           piaKa=piaKa+attKa*dr
+           zKaSim(k+1)=z35Table(n1,imu)+10*dn-piaKa
+           piaKa=piaKa+attKa*dr
         end if
         zeta1d(k+1)=zetaS
      end do

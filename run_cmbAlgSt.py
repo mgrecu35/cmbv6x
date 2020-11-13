@@ -78,7 +78,7 @@ for (i1,j1) in zip(a[0],a[1]):
             it+=1
             imu=3
             dr=0.125
-            eps=1.0
+            eps=0.175
             dn1d,dm1d,rrate1d,\
                 zkuc,zkasim,epst,piaKu,piaKa =\
                     cmb.iter_profcv(bst[i1,j1],bzd[i1,j1],bcf[i1,j1],\
@@ -95,11 +95,14 @@ plt.subplot(212)
 plt.plot(pType[:,24])
 
 rrate1dL=[]
+zKaSimL=[]
 for i1 in range(200):
     rrate1d=zeros(176)
     j1=24
     zKu1=zKu[i1,j1,:]
     zKa1=zKa[i1,j1-12,:]
+    zkasim=zeros(176)-99.9
+    eps=0.5
     if pType[i1,24]==2 or pType[i1,24]==3:
         dn1d,dm1d,rrate1d,\
             zkuc,zkasim,epst,piaKu,piaKa =\
@@ -121,7 +124,7 @@ for i1 in range(200):
                                     bsfc[i1,24],zKu1,zKa1,dr,eps,imu)
         
     rrate1dL.append(rrate1d)
-
+    zKaSimL.append(zkasim)
 
 rrate2d=array(rrate1dL)
 rrate2d=ma.array(rrate2d,mask=rrate2d<0.001)
@@ -130,4 +133,20 @@ plt.pcolormesh(rrate2d[:,::-1].T,cmap='jet')
 plt.ylim(0,60)
 plt.xlim(75,175)
 plt.colorbar()
+
+
+zKaSimL=array(zKaSimL)
+zKaSimL=ma.array(zKaSimL,mask=zKaSimL<0.001)
+plt.figure()
+plt.subplot(211)
+plt.pcolormesh(zKaSimL[:,::-1].T,cmap='jet',vmin=5,vmax=40)
+plt.ylim(0,60)
+plt.xlim(75,175)
+plt.colorbar()
+plt.subplot(212)
+plt.pcolormesh(zKa[:,12,::-1].T,cmap='jet',vmin=5,vmax=40)
+plt.ylim(0,60)
+plt.xlim(75,175)
+plt.colorbar()
 plt.show()
+
