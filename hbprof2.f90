@@ -21,7 +21,7 @@ subroutine initP2
 end subroutine initP2
 
 subroutine iter_profcv(btop,bzd,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
-     dn1d,dm1d,rrate1d,zKuC,zKaSim,epst,piaKu,piaKa)
+     dn1d,dm1d,rrate1d,zKuC,zKaSim,epst,piaKu,piaKa,itype,dncv)
   use tables2
   use tableP2
   use ran_mod
@@ -33,13 +33,15 @@ subroutine iter_profcv(btop,bzd,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
   real,intent(out) :: epst,piaKu,piaKa
   real,intent(out) :: dn1d(n1d), rrate1d(n1d), zKuC(n1d), zKaSim(n1d)
   real :: dzKa(n1d), dns(n1d)
-  real :: eps, dm, pia
-  integer :: it, ik, k, n1, n1H
+  real :: eps, dm, pia, dncv
+  integer :: it, ik, k, n1, n1H, itype
   real :: ztrueS,ztrueH,ztrue,f, attKuH, attKaH, attKuS, attKaS
   real :: ftran, zetaS, zeta1d(n1d), q
   real :: piaKuS, piaKaS, beta, piamax, attKu, attKa, dn, dni
   real :: dnCoeff(2)=(/-0.00570364,  0.13319214/)
-  real :: dmCoeff(3)=(/-4.57599678e-04,  7.852247958e-02, -1.78316499e+00/) !(/-4.57599678e-04,  8.52247958e-02, -1.78316499e+00/)
+  real :: dmCoeff(3)= (/-2.56885571e-04,  7.18909743e-02, -1.60889523e+00/)
+  !(/-4.57599678e-04,  7.852247958e-02, -1.78316499e+00/)
+  !(/-4.57599678e-04,  8.52247958e-02, -1.78316499e+00/)
   real :: rn, dm_old
   piaKu=0
   !dmCoeff=array([ 0.02893781, -0.69481455])
@@ -113,19 +115,26 @@ subroutine iter_profcv(btop,bzd,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
         if(zKuC(k+1)>0) then
            ztrue=zKuC(k+1)
            ftran=1
-           dni=1.5*(dnCoeff(1)*ztrue+dnCoeff(2))+0.2*log(epst)
+           if(itype.eq.2) then
+              dn=1.5*(dnCoeff(1)*ztrue+dnCoeff(2))+0.2*log(epst)
+           else
+              dn=1.0*(dnCoeff(1)*ztrue+dnCoeff(2))+0.2*log(epst)+dncv
+           end if
+           n1=(ztrue-1*dn-zmin)/dzbin
+           dm=d013Table(n1,imu)
            !-----------------------------------------------------
-           dm=exp(dmCoeff(1)*ztrue**2+dmCoeff(2)*ztrue+dmCoeff(3))
-           dm_old=dm
+           !dm=0.9*(exp(dmCoeff(1)*ztrue**2+dmCoeff(2)*ztrue+dmCoeff(3)))
+           !dm_old=dm
            !if(dm.gt.0.5.and.dm.lt.2.8) then
-           rn=normal2(0.0,1.0)
-              !dm=1.6+(dm-1.6)*(1+0.25*rn)
-           dm=0.75*dm+0.25*(1.3+0.25*normal2(0.0,1.0))
+           !if(it.eq.2) then
+           !   rn=normal2(0.0,1.0)
+           !   dm=0.9*(0.875*dm+0.125*(1.3+0.25*normal2(0.0,1.0)))
            !end if
-           if(dm<0.31) dm=0.31
-           if(dm>3) dm=3
-           call bisection2(d013Table(:,imu),nbins,dm, n1)
-           dn=(ztrue-zKuSJ(n1))/10
+           !end if
+           !if(dm<0.31) dm=0.31
+           !if(dm>3) dm=3
+           !call bisection2(d013Table(:,imu),nbins,dm, n1)
+           !dn=(ztrue-zKuSJ(n1))/10
            !dn=0.5*(dn+dn)
            !-------------------------------------------------------
            if(10*dn+ztrue.gt.zKuSJ(nbins)) dn=(zKuSJ(nbins)-ztrue)/10.0
@@ -158,19 +167,20 @@ end subroutine iter_profcv
 
 
 subroutine iter_profst(btop,bzd,bb,bbt,bbb,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
-     dn1d,dm1d,rrate1d,zKuC,zKaSim,epst,piaKu,piaKa)
+     dn1d,dm1d,rrate1d,zKuC,zKaSim,epst,piaKu,piaKa,dnst,dnCoeff_new,dnp)
   use tables2
   use tableP2
   use ran_mod
   implicit none
   integer :: btop, bzd, bcf, bsfc, n1d, imu, bb,bbt,bbb
   real :: zKuL(n1d), dr, zKaL(n1d)
+  real :: dnCoeff_new(2)
   !real :: dmCoeff(2)=(/0.027773772993636318,-0.6624076086959071/)
   real,intent(out) :: dm1d(n1d)
   real,intent(out) :: epst,piaKu,piaKa
   real,intent(out) :: dn1d(n1d), rrate1d(n1d), zKuC(n1d), zKaSim(n1d)
-  real :: dzKa(n1d), dns(n1d)
-  real :: eps, dm, pia
+  real :: dzKa(n1d), dns(n1d), dnp(n1d)
+  real :: eps, dm, pia, dnst
   integer :: it, ik, k, n1, n1H
   real :: ztrueS,ztrueH,ztrue,f, attKuH, attKaH, attKuS, attKaS
   real :: ftran, zetaS, zeta1d(n1d), q
@@ -178,14 +188,14 @@ subroutine iter_profst(btop,bzd,bb,bbt,bbb,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
   real :: dnCoeff(2)=(/-0.00570364,  0.13319214/)
   integer :: n1S,n1BB,n1b
   real :: attKuBB, attKaBB, Z1, Z2
-  real :: dmCoeff(3)
+  real :: dmCoeff(3)=(/-2.56885571e-04,  7.18909743e-02, -1.60889523e+00/)
   !=(/-4.57599678e-04,  7.752247958e-02, -1.78316499e+00/)
 !  array([-2.56885571e-04,  7.18909743e-02, -1.60889523e+00])
 
   real :: rn, r1
   piaKu=0
   !dmCoeff=array([ 0.02893781, -0.69481455])
-
+  dnCoeff=dnCoeff_new
   zKuC=zKuL
   dns=0
   do it=1,2
@@ -277,7 +287,8 @@ subroutine iter_profst(btop,bzd,bb,bbt,bbb,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
         Z2=(f)*zKuC(k+1)
         ztrue=Z2
         n1=(Z1-zmin-10*dns(bbt))/dzbin+1
-        dn=1.5*(dnCoeff(1)*Z2+dnCoeff(2))+0.2*log(epst)
+        !dn=1.0*(dnCoeff(1)*Z2+dnCoeff(2))+0.2*log(epst)
+        dn=1.0*(dnCoeff(1)*ztrue+dnCoeff(2))+dnp(k+1)+0.2*log(epst)+dnst
         if(10*dn+ztrue.gt.zKuSJ(nbins)) dn=(zKuSJ(nbins)-ztrue)/10.0
         if(10*dn+ztrue.lt.zKuSJ(1)) dn=(zKuSJ(1)-ztrue)/10.0
         n1b=((Z2-zmin-10*dn)/dzbin)+1
@@ -316,24 +327,29 @@ subroutine iter_profst(btop,bzd,bb,bbt,bbb,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
   attKu=0.0
   attKa=0.0
   f=1.0
-  do it=1,4
+  do it=1,3
      zetaS=0.0
      piaKa=piaKaS+0.0
      do k=bbb,bcf
         if(zKuC(k+1)>0) then
            ztrue=zKuC(k+1)
            ftran=1
-           dni=1.5*(dnCoeff(1)*ztrue+dnCoeff(2))+0.2*log(epst)
+           !dni=1.5*(dnCoeff(1)*ztrue+dnCoeff(2))+0.2*log(epst)
+           dn=1.0*(dnCoeff(1)*ztrue+dnCoeff(2))+dnp(k+1)+0.2*log(epst)+dnst
+           n1=(ztrue-1*dn-zmin)/dzbin
+           dm=d013Table(n1,imu)
            !------------------------------------------------
-           dm=exp(dmCoeff(1)*ztrue**2+dmCoeff(2)*ztrue+dmCoeff(3))
+           !dm=exp(dmCoeff(1)*ztrue**2+dmCoeff(2)*ztrue+dmCoeff(3))
            !if(dm.gt.0.5.and.dm.lt.2.8) then
-           rn=normal2(0.0,1.0)
-           dm=0.75*dm+0.25*(1.6+0.25*normal2(0.0,1.0))
+           !if (it.eq.2) then
+           !   rn=normal2(0.0,1.0)
+           !   dm=0.875*dm+0.125*(1.6+0.25*normal2(0.0,1.0))
            !end if
-           if(dm<0.31) dm=0.31
-           if(dm>3) dm=3
-           call bisection2(d013Table(:,imu),nbins,dm, n1)
-           dn=(ztrue-zKuSJ(n1))/10
+           !end if
+           !if(dm<0.31) dm=0.31
+           !if(dm>3) dm=3
+           !call bisection2(d013Table(:,imu),nbins,dm, n1)
+           !dn=(ztrue-zKuSJ(n1))/10
            !dn=0.5*(dn+dn)
            !---------------------------------------------------
            if(10*dn+ztrue.gt.zKuSJ(nbins)) dn=(zKuSJ(nbins)-ztrue)/10.0
@@ -361,6 +377,7 @@ subroutine iter_profst(btop,bzd,bb,bbt,bbb,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
         zKuC(k+1)=zKuL(k+1)+piaKuS-10/beta*log10(1-eps*q*beta*zeta1d(k+1))
      end do
      piaKu=(-10/beta*log10(1-eps*q*beta*zeta1d(bcf+1)))+attKu*(bsfc-bcf)*2*dr
+     piaKa=piaKa+attKa*(bsfc-bcf)*2*dr
   end do
 end subroutine iter_profst
 
