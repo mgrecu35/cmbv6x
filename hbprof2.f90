@@ -20,8 +20,74 @@ subroutine initP2
   !print*, d013Table(200:240,1),nbins,nbinS2,nbinH
 end subroutine initP2
 
+subroutine prof1d(btop,bzd,bcf,bsfc,binBB,binBBT,zKuL,zKaL,pType,dr,n1d,eps,imu,&
+     dn1d,dm1d,rrate1d,zKuC,zKaSim,epst,piaKu,piaKa,dnCoeff_new,dn)
+  implicit none
+  real :: dnp(n1d), dn
+  integer :: btop, bzd, bcf, bsfc, n1d, imu, bb,bbt,bbb, pType
+  real :: zKuL(n1d), dr, zKaL(n1d)
+  real :: dnCoeff_new(2)
+  integer :: binBB,binBBT
+  real,intent(out) :: dm1d(n1d)
+  real,intent(out) :: epst,piaKu,piaKa
+  real,intent(out) :: dn1d(n1d), rrate1d(n1d), zKuC(n1d), zKaSim(n1d)
+  real :: eps
+  real :: dZKa(n1d), dPIA
+  real :: dn1d1(n1d),dm1d1(n1d),rrate1d1(n1d),zKuC1(n1d),zKaSim1(n1d),epst1,piaKu1,piaKa1
+  real :: ddn, gradZS, gradZe
+  integer :: i
+  !print*, bbb, binBB
+  if (pType.eq.2) then
+     call iter_profcv(btop,bzd,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
+          dn1d,dm1d,rrate1d,zKuC,zKaSim,epst,piaKu,piaKa,ptype,dnCoeff_new,dn)
+  else
+     !dnCoeff_new(1)=-0.01257341
+     !dnCoeff_new(2)=-0.00933038
+     if (binBB.lt.1) then
+        call iter_profcv(btop,bzd,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
+             dn1d,dm1d,rrate1d,zKuC,zKaSim,epst,piaKu,piaKa,ptype,dnCoeff_new,dn)
+        call iter_profcv(btop,bzd,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
+             dn1d1,dm1d1,rrate1d1,zKuC1,zKaSim1,epst1,piaKu1,piaKa1,ptype,dnCoeff_new,dn-0.1)
+        bbb=bzd+3
+     else
+        bbb=binBB+2
+        bbt=binBBT
+        bb=binBB
+        dnp=0
+        call iter_profst(btop,bzd,bb,bbt,bbb,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
+             dn1d,dm1d,rrate1d,zKuC,zKaSim,epst,piaKu,piaKa,dn,dnCoeff_new,dnp)
+        call iter_profst(btop,bzd,bb,bbt,bbb,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
+             dn1d1,dm1d1,rrate1d1,zKuC1,zKaSim1,epst1,piaKu1,piaKa1,dn-0.1,dnCoeff_new,dnp)
+     end if
+     gradZS=1
+     gradZe=0.
+     do i=bbb+3,bcf
+        if(zKuL(i+1).gt.10.0.and.zKaL(i+1).gt.10) then
+           gradZS=gradZS+(-(zKaSim1(i+1)-zKaSim(i+1))/0.1)**2
+           gradZe=gradZe+(-(zKaSim1(i+1)-zKaSim(i+1))/0.1)*(zKaL(i+1)-zKaSim(i+1))
+        endif
+     enddo
+     ddn=0.5*gradZe/gradZS
+     !ddn=0.0
+     if(ddn.lt.-1) ddn=-1
+     if(ddn.gt.1) ddn=1
+     !print*, ddn, bbb, bcf
+     if (binBB.lt.1) then
+        call iter_profcv(btop,bzd,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
+             dn1d,dm1d,rrate1d,zKuC,zKaSim,epst,piaKu,piaKa,ptype,dnCoeff_new,dn+ddn)
+     else
+        bbb=binBB+2
+        bbt=binBBT
+        bb=binBB
+        dnp=0
+        call iter_profst(btop,bzd,bb,bbt,bbb,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
+             dn1d,dm1d,rrate1d,zKuC,zKaSim,epst,piaKu,piaKa,dn+ddn,dnCoeff_new,dnp)
+     end if
+     
+  end if
+end subroutine prof1d
 subroutine iter_profcv(btop,bzd,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
-     dn1d,dm1d,rrate1d,zKuC,zKaSim,epst,piaKu,piaKa,itype,dncv)
+     dn1d,dm1d,rrate1d,zKuC,zKaSim,epst,piaKu,piaKa,itype,dnCoeff_new,dncv)
   use tables2
   use tableP2
   use ran_mod
@@ -32,6 +98,7 @@ subroutine iter_profcv(btop,bzd,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
   real,intent(out) :: dm1d(n1d)
   real,intent(out) :: epst,piaKu,piaKa
   real,intent(out) :: dn1d(n1d), rrate1d(n1d), zKuC(n1d), zKaSim(n1d)
+  real :: dnCoeff_new(2)
   real :: dzKa(n1d), dns(n1d)
   real :: eps, dm, pia, dncv
   integer :: it, ik, k, n1, n1H, itype
@@ -46,6 +113,9 @@ subroutine iter_profcv(btop,bzd,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
   piaKu=0
   !dmCoeff=array([ 0.02893781, -0.69481455])
 
+  if(itype.eq.1) then
+     dnCoeff=dnCoeff_new
+  end if
   zKuC=zKuL
   dns=0
   do it=1,2
@@ -116,7 +186,7 @@ subroutine iter_profcv(btop,bzd,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
            ztrue=zKuC(k+1)
            ftran=1
            if(itype.eq.2) then
-              dn=1.5*(dnCoeff(1)*ztrue+dnCoeff(2))+0.2*log(epst)
+              dn=1.5*(dnCoeff(1)*ztrue+dnCoeff(2))+0.2*log(epst)+dncv
            else
               dn=1.0*(dnCoeff(1)*ztrue+dnCoeff(2))+0.2*log(epst)+dncv
            end if
