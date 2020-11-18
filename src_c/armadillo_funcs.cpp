@@ -4,6 +4,45 @@
 using namespace std;
 using namespace arma;
 
+extern "C" void gauss_newton_(float *dzdn, float *z, float *zobs, int *n, float *s,
+                            float *dn)
+{
+  int i, j;
+  mat gradZ(*n,*n),temp;
+  vec dy=vec(*n),sol;
+  for(i=0;i<*n;i++)
+    for(j=0;j<*n;j++)
+    {
+      gradZ(i,j)=dzdn[j*(*n)+i];
+    }
+
+  temp=gradZ.t()*gradZ;
+  for(i=0;i<*n;i++)
+    {
+      temp(i,i)+=*s;
+      if(zobs[i]>10 && z[i]>5)
+	dy(i)=zobs[i]-z[i];
+      else
+	dy(i)=0;
+    }
+  sol=solve(temp,dy);
+  for(i=0;i<*n;i++)
+    dn[i]=sol(i);
+
+  /*
+  for(i=0;i<*n;i++)
+    printf("%6.2f ",zobs[i]);
+  printf("\n");
+  for(i=0;i<*n;i++)
+    printf("%6.2f ",z[i]);
+  printf("\n");
+  for(i=0;i<*n;i++)
+    printf("%6.2f ",sol[i]);
+  printf("\n");
+  printf("****\n");
+  */
+}
+
 
 extern "C" void interp_arm_(float *x, float *y, int *n,
                             float *xi, float *yi, int *ni)

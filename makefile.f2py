@@ -58,14 +58,14 @@ LIB =	-L$(HDF5_LIB) \
 
 #---List of Normal Libraires to Search for References during Linkage
 
-LIBES = -lmultiscatter -llapack
+LIBES = -lmultiscatter -llapack -lopenblas
 
 
 #---Compile Stages
 OBJ =	f90DataTypes.o  random.o writegif.o nbin.o\
 	weightModule.o lut_routines_sjm.o\
 	emissModule.o missing_flags.o read_melt_percentages.o\
-	globModule.o readTables_nonsph.o bisection.o cloud.o\
+	globModule.o readTables_nonsph.o cloud.o\
 	absorb.o gcloud.o  \
 	geomask.o f90Types.o allocateMem.o ezlhconv.o readNh.o beamConvP.o beamConvSet.o\
 	resampGMI.o interpol.o geophysEns.o gEnv.o outputminmax.o \
@@ -74,14 +74,14 @@ OBJ =	f90DataTypes.o  random.o writegif.o nbin.o\
 	rterain.o radtran_tau_dble.o\
         convPix2.py.o latlon.o setOpt.o convAllFreq.o asciiCon.o writeEnKF.o screenocean.o\
 	filterUp1.o\
-        kgainBLAS.o getScattProp.o 
+        kgainBLAS.o getScattProp.o armadillo_funcs.o
 
 OBJEXE	=    $(OBJ)  src_f90/mainfpy.f90  
 
 #---Link and create Executable
 combAlg:	$(OBJEXE) 
 		f2py -c -m combAlg \
-		src_f90/mainfpy.f90 hbprof2.f90\
+		src_f90/mainfpy.f90 hbprof2.f90 src_f90/bisection.f90\
 		$(OBJ)  $(LIB) $(LIBES) 
 
 #---Auxiliary Functions
@@ -120,7 +120,7 @@ rteModule.o:	src_f90/rteModule.f90
 		$(F90) -c  -O2 src_f90/rteModule.f90 
 
 armadillo_funcs.o:
-		g++ -c -fPIC -DARMA_DONT_USE_WRAPPER -I./armadillo-9.400.3/include src_c/armadillo_funcs.cpp
+		g++  -std=c++11 -c -fPIC -DARMA_DONT_USE_WRAPPER -I./src_c/armadillo-10.1.2/include src_c/armadillo_funcs.cpp
 
 rainDisc.o:	rainDisc.f90 
 		$(F90) -c  -O2 rainDisc.f90 
