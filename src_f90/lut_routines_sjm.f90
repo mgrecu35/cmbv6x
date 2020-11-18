@@ -430,7 +430,9 @@ do ch = 1, LUT%nch
   do k = 1, LUT%water_emis_nT
     do l = 1, LUT%water_emis_nW
       do i=1, LUT%water_emis_nA
-        read(1) junk,LUT%water_emis_temp(k),LUT%water_emis_wind(l),LUT%water_emis_angle(ch,i), LUT%water_emis(ch,k,l,i,:),LUT%water_ebar(ch,k,l),LUT%water_eharm(ch,k,l,i,1,1),LUT%water_eharm(ch,k,l,i,1,2),LUT%water_eharm(ch,k,l,i,2,1),LUT%water_eharm(ch,k,l,i,2,2)
+        read(1) junk,LUT%water_emis_temp(k),LUT%water_emis_wind(l),LUT%water_emis_angle(ch,i), &
+             LUT%water_emis(ch,k,l,i,:),LUT%water_ebar(ch,k,l),LUT%water_eharm(ch,k,l,i,1,1),&
+             LUT%water_eharm(ch,k,l,i,1,2),LUT%water_eharm(ch,k,l,i,2,1),LUT%water_eharm(ch,k,l,i,2,2)
       end do
     end do
   end do
