@@ -779,39 +779,41 @@ subroutine iter_profst(btop,bzd,bb,bbt,bbb,bcf,bsfc,zKuL,zKaL,dr,n1d,eps,imu,&
         Z1=(1-f)*zKuC(k+1)
         Z2=(f)*zKuC(k+1)
         ztrue=zKuC(bbb+1)
-        n1=(ztrue-zmin-10*dns(bbt))/dzbin+1
-        !print*, f, ztrue, dns(bbt), n1, dnp(k+1)
-        !dn=1.0*(dnCoeff(1)*Z2+dnCoeff(2))+0.2*log(epst)
-        dn=dns(bbt)!1.0*(dnCoeff(1)*ztrue+dnCoeff(2))+dnp(k+1)+0.2*log(epst)+dnst
-        !call bisection2(zKudN(1:nbins),nbins,ztrue-10*(dnst), n1)
-        !dm=d013Table(n1,imu)
-        !dn=(ztrue-z13Table(n1,imu))/10.0
-        !print*, 'dn=',dn
-        if(10*dn+ztrue.gt.zKuSJ(nbins)) dn=(zKuSJ(nbins)-ztrue)/10.0
-        if(10*dn+ztrue.lt.zKuSJ(1)) dn=(zKuSJ(1)-ztrue)/10.0
-        n1b=((Z2-zmin-10*dn)/dzbin)+1
-        if(n1.gt.nbins) n1=nbins
-        if(n1b.gt.nbins) n1b=nbins
-        if(n1.lt.1) n1=1
-        if(n1b.lt.1) n1b=1
-        if(btop.gt.bb) then
-           !print*,'ind', z1,z2,ztrue,zkuc(k+1)
-           !print*, n1,n1b,dn,dns(bbt)
-        endif
-        attKu=att13Table(n1b,imu)*10**dn
-        attKa=att35Table(n1b,imu)*10**dn
-        attKuBB=att13TableBB(n1,imu)*10**dns(bbt)
-        attKaBB=att35TableBB(n1,imu)*10**dns(bbt)
-        piaKu=piaKu+(attKu+attKuBB)*dr
-        piaKa=piaKa+(attKa+attKaBB)*dr
-        zKuC(k+1)=zKuL(k+1)+piaKu
-        zKaSim(k+1)=10*log10(10**(0.1*z35TableBB(n1,imu)+dns(bbt))+&
-             10**(0.1*z35Table(n1b,imu)+dn))-piaKa
-        piaKu=piaKu+(attKu+attKuBB)*dr
-        piaKa=piaKa+(attKa+attKaBB)*dr
-        dm1d(k+1)=(1-f)*d013TableBB(n1,imu)+f*d013Table(n1b,imu)
-        dn1d(k+1)=(1-f)*dns(bbt)+f*dn
-        rrate1d(k+1)=pr13TableBB(n1,imu)*10**dns(bbt)+pr13Table(n1b,imu)*10**dn
+        if(ztrue.gt.10) then
+           n1=(ztrue-zmin-10*dns(bbt))/dzbin+1
+           !print*, f, ztrue, dns(bbt), n1, dnp(k+1)
+           !dn=1.0*(dnCoeff(1)*Z2+dnCoeff(2))+0.2*log(epst)
+           dn=dns(bbt)!1.0*(dnCoeff(1)*ztrue+dnCoeff(2))+dnp(k+1)+0.2*log(epst)+dnst
+           !call bisection2(zKudN(1:nbins),nbins,ztrue-10*(dnst), n1)
+           !dm=d013Table(n1,imu)
+           !dn=(ztrue-z13Table(n1,imu))/10.0
+           !print*, 'dn=',dn
+           if(10*dn+ztrue.gt.zKuSJ(nbins)) dn=(zKuSJ(nbins)-ztrue)/10.0
+           if(10*dn+ztrue.lt.zKuSJ(1)) dn=(zKuSJ(1)-ztrue)/10.0
+           n1b=((Z2-zmin-10*dn)/dzbin)+1
+           if(n1.gt.nbins) n1=nbins
+           if(n1b.gt.nbins) n1b=nbins
+           if(n1.lt.1) n1=1
+           if(n1b.lt.1) n1b=1
+           if(btop.gt.bb) then
+              !print*,'ind', z1,z2,ztrue,zkuc(k+1)
+              !print*, n1,n1b,dn,dns(bbt)
+           endif
+           attKu=att13Table(n1b,imu)*10**dn
+           attKa=att35Table(n1b,imu)*10**dn
+           attKuBB=att13TableBB(n1,imu)*10**dns(bbt)
+           attKaBB=att35TableBB(n1,imu)*10**dns(bbt)
+           piaKu=piaKu+(attKu+attKuBB)*dr
+           piaKa=piaKa+(attKa+attKaBB)*dr
+           zKuC(k+1)=zKuL(k+1)+piaKu
+           zKaSim(k+1)=10*log10(10**(0.1*z35TableBB(n1,imu)+dns(bbt))+&
+                10**(0.1*z35Table(n1b,imu)+dn))-piaKa
+           piaKu=piaKu+(attKu+attKuBB)*dr
+           piaKa=piaKa+(attKa+attKaBB)*dr
+           dm1d(k+1)=(1-f)*d013TableBB(n1,imu)+f*d013Table(n1b,imu)
+           dn1d(k+1)=(1-f)*dns(bbt)+f*dn
+           rrate1d(k+1)=pr13TableBB(n1,imu)*10**dns(bbt)+pr13Table(n1b,imu)*10**dn
+        end if
         !print*, zKuC(k+1),Z1,Z2,dn,n1b,n1
      end if
   end do
