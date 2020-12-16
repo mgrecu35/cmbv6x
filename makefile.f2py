@@ -80,8 +80,9 @@ OBJEXE	=    $(OBJ)  src_f90/mainfpy.f90
 
 #---Link and create Executable
 combAlg:	$(OBJEXE) 
-		f2py -c -m combAlg \
-		src_f90/mainfpy.f90 hbprof2.f90 src_f90/bisection.f90\
+		f2py -c -m combAlg --f90flags="-fopenmp" --arch="-fopenmp"\
+		src_f90/mainfpy.f90 hbprof_new.f90 augLagrange.f90\
+		src_f90/bisection.f90\
 		$(OBJ)  $(LIB) $(LIBES) 
 
 #---Auxiliary Functions
