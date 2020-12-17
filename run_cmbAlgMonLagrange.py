@@ -181,7 +181,8 @@ for f1 in fs:
                 nens=60
                 dpiaRet=piaka-piaku
                 if bcf>bbb+1:
-                    rrate_out,dn_out,zkusimE,zkasimE,rrEns,yEns,xEns,dy,pia_out = \
+                    rrate_out,dn_out,zkusimE,zkasimE,\
+                        zku_out,zka_out,rrEns,yEns,xEns,dy,pia_out = \
                         cmb.rainprofstg(zKu[bbb:bcf+1],zKa[bbb:bcf+1],\
                                         dsrtPIA,piaKuS,piaKaS,\
                                         reliabFlag,nc,dr,wzku,wzka,wpia,\
@@ -196,6 +197,8 @@ for f1 in fs:
                     rrate1dF=rrate1d.copy()
                     kGain=dot(covXY,linalg.inv(covYY+R*eye(ny)))
                     xRet=xEns.mean(axis=1)+dot(kGain,dy)
+                    #print(dot(kGain,dy))
+                    #stop
                     xMin=xEns.min(axis=1)
                     xMax=xEns.max(axis=1)
                     a=nonzero(xRet<xMin)
@@ -203,8 +206,12 @@ for f1 in fs:
                     a=nonzero(xRet>xMax)
                     xRet[a]=xMax[a]
                     n1=int((nx-1)/2)
-                    rrate1dF[bbb:bcf+1]=xRet[0:n1]
+                    rrate1dF[bbb:bcf+1]=rrate_out#xRet[0:n1]
+                    zkasimF=zkasim.copy()
+                    zkasimF[bbb:bcf+1]=zka_out
+                    #stop
                     dpiaRet=xRet[-1]
+                    dpiaRet=pia_out[1]-pia_out[0]
             else:
                 dn1d,dm1d,rrate1d,zkuc,zkasim,\
                     epst,piaku,piaka,\
@@ -222,7 +229,8 @@ for f1 in fs:
                 nens=60
                 dpiaRet=piaka-piaku
                 if bcf>bbb+1:
-                    rrate_out,dn_out,zkusimE,zkasimE,rrEns,yEns,xEns,dy,pia_out = \
+                    rrate_out,dn_out,zkusimE,zkasimE,\
+                        zku_out,zka_out,rrEns,yEns,xEns,dy,pia_out = \
                         cmb.rainprofstg(zKu[bbb:bcf+1],zKa[bbb:bcf+1],\
                                         dsrtPIA,piaKuS,piaKaS,\
                                         reliabFlag,nc,dr,wzku,wzka,wpia,\
@@ -244,15 +252,18 @@ for f1 in fs:
                     xRet[a]=xMax[a]
                     n1=int((nx-1)/2)
                     rrate1dF=rrate1d.copy()
-                    rrate1dF[bbb:bcf+1]=xRet[0:n1]
+                    zkasimF=zkasim.copy()
+                    zkasimF[bbb:bcf+1]=zka_out
+                    rrate1dF[bbb:bcf+1]=rrate_out
                     dpiaRet=xRet[-1]
-                
+                    dpiaRet=pia_out[1]-pia_out[0]
             if reliabFlag==1:
-                r1L.append([rrate1d[bcf],dprsfcRate,piaka-piaku,\
-                            dsrtPIA,sfcType,binBB,lat,cmbsfcRain,\
-                            rrate1d[bcf],piaka-piaku,zKa,zkasim,zkasim,\
-                            bzd,binBB,bcf,rrate1dF[bcf],zkasim[bcf],\
-                            dpiaRet])
+                if(zKa[bcf]>10 and zKu[bcf]>10):
+                    r1L.append([rrate1d[bcf],dprsfcRate,piaka-piaku,\
+                                dsrtPIA,sfcType,binBB,lat,cmbsfcRain,\
+                                rrate1d[bcf],piaka-piaku,zKa,zkasim,zkasim,\
+                                bzd,binBB,bcf,rrate1dF[bcf],zkasimF[bcf],\
+                                dpiaRet])
                 if piaka-piaku==inf:
                     stop
                 bzdL.append(bzd)
@@ -260,11 +271,12 @@ for f1 in fs:
                 zka1L.append(zKa[bzd-56:bzd+6])
             else:
                 p=1
-                r1Lun.append([rrate1d[bcf],dprsfcRate,piaka-piaku,\
-                              dsrtPIA,sfcType,binBB,lat,cmbsfcRain,
-                              rrate1d[bcf],piaka-piaku,zKa,zkasim,zkasim,\
-                              bzd,binBB,bcf,rrate1dF[bcf],zkasim[bcf],\
-                              dpiaRet])
+                if(zKa[bcf]>10 and zKu[bcf]>10):
+                    r1Lun.append([rrate1d[bcf],dprsfcRate,piaka-piaku,\
+                                  dsrtPIA,sfcType,binBB,lat,cmbsfcRain,
+                                  rrate1d[bcf],piaka-piaku,zKa,zkasim,zkasim,\
+                                  bzd,binBB,bcf,rrate1dF[bcf],zkasimF[bcf],\
+                                  dpiaRet])
 
 
     pickle.dump([r1L,r1Lun],open('retrs/stratRetrievalsAug2018StE_%3.3i.pklz'%ifile,'wb'))

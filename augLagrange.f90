@@ -110,7 +110,8 @@ end subroutine rainprofst
 
 
 subroutine rainprofstg(n1,zku_obs,zka_obs,dpiaSRT,piakus,piakas,&
-     reldpia,nc,dr,wzku,wzka,wpia,rrate_in,dn_in,nens,rrate_out,dn_out,zkusim,zkasim,rrens,yEns,xEns,dy,pia_out)
+     reldpia,nc,dr,wzku,wzka,wpia,rrate_in,dn_in,nens,rrate_out,dn_out,zkusim,zkasim,&
+     zku_out,zka_out,rrens,yEns,xEns,dy,pia_out)
   use tablep2
   use tables2
   use ran_mod
@@ -125,13 +126,15 @@ subroutine rainprofstg(n1,zku_obs,zka_obs,dpiaSRT,piakus,piakas,&
   real :: df_dlogr(n1), df_dn(n1)
   real :: rrate_in(n1),dn_in(n1), logrrate(n1)
   real,intent(out) :: rrate_out(n1),dn_out(n1),zkusim(nens,n1),zkasim(nens,n1),&
-       rrens(nens,n1),pia_out(nens,2),yEns(nens,2*n1+1),xEns(nens,2*n1+1), dy(2*n1+1)
+       rrens(nens,n1),pia_out(2),yEns(nens,2*n1+1),xEns(nens,2*n1+1), dy(2*n1+1)
+  real,intent(out) :: zku_out(n1), zka_out(n1)
   integer :: i, n1j, it, i1, nens
   real :: piaKut,piaKat, dzku, dzka, dzkudr, dzkadr, &
        dattkudr(n1), dattkadr(n1), &
        dattkudn(n1), dattkadn(n1), dpia, attkuL, attKaL, wdn, alpha
   real :: fobj
   real :: rn,dnp,rrn
+  real :: dx(2*n1+1), sigma
   df_dlam1=0
   df_dlam2=0
  
@@ -174,8 +177,8 @@ subroutine rainprofstg(n1,zku_obs,zka_obs,dpiaSRT,piakus,piakas,&
      end do
      piaKut=piaKut+attKuL*2*nc*dr
      piaKat=piaKat+attKaL*2*nc*dr
-     pia_out(it,1)=piaKut
-     pia_out(it,2)=piaKat
+     pia_out(1)=piaKut
+     pia_out(2)=piaKat
      yEns(it,2*n1+1)=piaKat-piaKut
      xEns(it,2*n1+1)=piaKat-piaKut
   enddo
@@ -190,4 +193,34 @@ subroutine rainprofstg(n1,zku_obs,zka_obs,dpiaSRT,piakus,piakas,&
   if(reldpia.eq.1) then
      dy(2*n1+1)=dpiaSRT-sum(yEns(:,2*n1+1))/nens
   end if
+  sigma=4
+  call kgain(xENS, yEns, dy, 2*n1+1, 2*n1+1, nEns, sigma, dx)
+  !print*, dx
+  !stop
+  !La Solution
+  piaKut=piaKuS
+  piaKat=piaKaS
+  do i=1,n1
+     if (zku_obs(i).gt.10) then
+        rrate_out(i)=sum(xEns(:,i))/nEns+0.95*dx(i)
+        if(rrate_out(i).lt.minval(xEns(:,i))) then
+           rrate_out(i)=minval(xEns(:,i))
+        end if
+        dnp=sum(xEns(:,i+n1))/nEns+0.95*dx(i+n1)
+        call bisection2(logRJ,nbins,log10(rrate_out(i))-dnp,n1j)
+        dn_out(i)=dnp
+        attKuL=attKuJ(n1j)*10**dnp
+        attKaL=attKaJ(n1j)*10**dnp
+        piaKut=piaKut+attKuJ(n1j)*10**dnp*dr
+        piaKat=piaKat+attKaJ(n1j)*10**dnp*dr
+        zku_out(i)=zkusj(n1j)+10*dnp-piaKut
+        zka_out(i)=zkasj(n1j)+10*dnp-piaKat
+        piaKut=piaKut+attKuJ(n1j)*10**dnp*dr
+        piaKat=piaKat+attKaJ(n1j)*10**dnp*dr
+     end if
+  end do
+  piaKut=piaKut+attKuL*2*nc*dr
+  piaKat=piaKat+attKaL*2*nc*dr
+  pia_out(1)=piaKut
+  pia_out(2)=piaKat
 end subroutine rainprofstg
