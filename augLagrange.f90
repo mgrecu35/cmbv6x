@@ -111,7 +111,7 @@ end subroutine rainprofst
 
 subroutine rainprofstg(n1,zku_obs,zka_obs,dpiaSRT,piakus,piakas,&
      reldpia,nc,dr,wzku,wzka,wpia,rrate_in,dn_in,nens,rrate_out,dn_out,zkusim,zkasim,&
-     zku_out,zka_out,rrens,yEns,xEns,dy,pia_out)
+     zku_out,zka_out,rrens,yEns,xEns,dy,pia_out,dm_out)
   use tablep2
   use tables2
   use ran_mod
@@ -127,7 +127,7 @@ subroutine rainprofstg(n1,zku_obs,zka_obs,dpiaSRT,piakus,piakas,&
   real :: rrate_in(n1),dn_in(n1), logrrate(n1)
   real,intent(out) :: rrate_out(n1),dn_out(n1),zkusim(nens,n1),zkasim(nens,n1),&
        rrens(nens,n1),pia_out(2),yEns(nens,2*n1+1),xEns(nens,2*n1+1), dy(2*n1+1)
-  real,intent(out) :: zku_out(n1), zka_out(n1)
+  real,intent(out) :: zku_out(n1), zka_out(n1), dm_out(n1)
   integer :: i, n1j, it, i1, nens
   real :: piaKut,piaKat, dzku, dzka, dzkudr, dzkadr, &
        dattkudr(n1), dattkadr(n1), &
@@ -215,6 +215,7 @@ subroutine rainprofstg(n1,zku_obs,zka_obs,dpiaSRT,piakus,piakas,&
         piaKat=piaKat+attKaJ(n1j)*10**dnp*dr
         zku_out(i)=zkusj(n1j)+10*dnp-piaKut
         zka_out(i)=zkasj(n1j)+10*dnp-piaKat
+        dm_out(i)=dmJ(n1j)
         piaKut=piaKut+attKuJ(n1j)*10**dnp*dr
         piaKat=piaKat+attKaJ(n1j)*10**dnp*dr
      end if
